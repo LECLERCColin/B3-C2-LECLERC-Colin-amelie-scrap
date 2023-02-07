@@ -1,0 +1,45 @@
+import requests
+import json
+from bs4 import BeautifulSoup
+import csv
+payload = {
+    "type": "ps",
+    "ps_profession": "34",
+    "ps_profession_label": "Médecin généraliste",
+    "ps_localisation": "HERAULT (34)",
+    "localisation_category": "departements",
+}
+ 
+url = "http://annuairesante.ameli.fr/recherche.html"
+header = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+}
+ 
+req = requests.Session()
+response = req.post(url, params=payload, headers=header)
+
+if response.status_code == 200:
+
+    soup = BeautifulSoup(response.content, "html.parser")
+   
+    # Recherche des informations sur les médecins généralistes
+    doctors = soup.find_all("div", class_="item-professionnel-inner")
+    
+    # Création d'un fichier CSV pour stocker les informations
+    with open("doctors.csv", "w", newline="") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerow(["Name", "Address", "Phone"])
+    # Extraction des informations sur les médecins généralistes
+        for doctor in doctors:
+            
+            name = soup.find("h2", class_="ignore-css").find("strong").text + " " + soup.find("h2", class_="ignore-css").text.strip().split(" ")[-1]
+            address = soup.find("div", class_="item left adresse").text.strip()
+            phone = soup.find("div", class_="item left tel").text.replace("\xa0", "").strip()
+            
+        
+            # Ecriture des informations dans le fichier CSV
+            writer.writerow([name, address, phone])
+    
+
+else:
+    print("Erreur lors de la requete HTTP POST")
