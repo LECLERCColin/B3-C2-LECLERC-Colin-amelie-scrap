@@ -1,0 +1,16 @@
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+url = "https://www.imdb.com/chart/top/?ref_=nv_mv_250"
+html_content = requests.get(url).text
+soup = BeautifulSoup(html_content, "html.parser")
+movies = soup.find_all("td", class_="titleColumn")
+
+with open("imdb_top_movies.csv", "w", newline="", encoding="utf-16") as file:
+    writer = csv.writer(file)
+    writer.writerow(["Title"])
+    for movie in movies:
+        title = movie.find("a").text
+        writer.writerow([title])
+
